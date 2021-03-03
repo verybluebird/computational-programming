@@ -1,11 +1,12 @@
     
       PROGRAM laba1
        IMPLICIT NONE
-       REAL a, b, gamma, pi
-       REAL alfa, beta, minA
+       REAL a, b, c, pi
+       REAL alfa, beta, gamma, minA
        INTEGER number
-       COMMON /var/ a, b, gamma, number, pi
-       COMMON /angles/ alfa, beta, minA
+       COMMON /sides/ a, b, c
+       COMMON /angles/ alfa, beta, gamma, minA
+       COMMON pi
        pi = 4 * atan (1.0)
        DO WHILE (number .NE. 5 )
         CALL menu()
@@ -13,6 +14,13 @@
         SELECT CASE (number)
          CASE (1)
           CALL input_triangle (a, b, gamma)
+          CALL calc_side()
+          
+          IF (a.LT.b+c .AND. b.LT.a+c .AND. c.LT.a+b) THEN
+           CONTINUE
+          ELSE
+           PRINT *,'Entered data is wrong, try againg.'
+          END IF
          CASE (2)
           CALL area ()
          CASE (3)
@@ -24,8 +32,9 @@
       END
       
       SUBROUTINE input_triangle(a, b, gamma)
-        REAL a, b, gamma
         IMPLICIT NONE
+        REAL a, b, gamma
+        
         PRINT *, 'Enter 2 sides'
         PRINT *, 'a,b: '
         READ *, a, b
@@ -36,18 +45,34 @@
       
       SUBROUTINE area()
        IMPLICIT NONE
+       REAL a, b, c, pi
+       REAL alfa, beta, gamma, minA
        REAL s
-       COMMON /var/ a, b, gamma, number, pi
+       COMMON /sides/ a, b, c
+       COMMON /angles/ alfa, beta, gamma, minA
+       COMMON pi
+       
        s = a*b*sin(gamma*pi/180)/2
        print *, s
       END
       
+      SUBROUTINE calc_side()
+       IMPLICIT NONE
+       REAL a, b, c, pi
+       REAL alfa, beta, gamma, minA
+       COMMON /sides/ a, b, c
+       COMMON /angles/ alfa, beta, gamma, minA
+       COMMON pi
+       c = sqrt ( a*a + b*b - 2*a*b*cos(gamma*pi/180))
+      END
+      
       SUBROUTINE min_angle ()
        IMPLICIT NONE
-       REAL alfa, beta
-       COMMON /var/ a, b, gamma, number, pi
-       COMMON /angles/ alfa, beta, minA
-       c = sqrt ( a*a + b*b - 2*a*b*cos(gamma*pi/180))
+       REAL a, b, c, pi
+       REAL alfa, beta, gamma, minA
+       COMMON /sides/ a, b, c
+       COMMON /angles/ alfa, beta, gamma, minA
+       COMMON pi
        alfa = (acos ( (b - a*cos(gamma*pi/180))/ ( c ) ))*180/pi
        beta = 180 - alfa - gamma
        minA = min(alfa, beta, gamma)
@@ -60,13 +85,16 @@
        !minA = gamma
        print *, minA
        !END if  
-       END
+      END
        
       SUBROUTINE cos_min_angle ()
        IMPLICIT NONE
+       REAL a, b, c, pi
+       REAL alfa, beta, gamma, minA
        REAL minCos
-       COMMON /var/ a, b, gamma, number, pi
-       COMMON /angles/ alfa, beta, minA
+       COMMON /sides/ a, b, c
+       COMMON /angles/ alfa, beta, gamma, minA
+       COMMON pi
        COMMON /cos/ minCos       
        PRINT *, 'Minimal angle:'
        CALL min_angle ()
