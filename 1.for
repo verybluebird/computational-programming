@@ -7,19 +7,24 @@
        COMMON /sides/ a, b, c
        COMMON /angles/ alfa, beta, gamma, minA
        COMMON pi
-       pi = 3.141592652
+       pi = 3.1415927
        DO WHILE (number .NE. 5 )
         CALL menu()
         CALL input(number)
         SELECT CASE (number)
          CASE (1)
-          CALL input_triangle (a, b, gamma)
+   1      CALL input_triangle (a, b, gamma)
           CALL calc_side()
           
           IF (a.LT.b+c .AND. b.LT.a+c .AND. c.LT.a+b) THEN
+           IF (gamma .LT. 0) THEN
+            PRINT *,'Entered data is wrong, try againg.'
+            GOTO 1
+           END IF 
            CONTINUE
           ELSE
            PRINT *,'Entered data is wrong, try againg.'
+           GOTO 1
           END IF
          CASE (2)
           CALL area ()
