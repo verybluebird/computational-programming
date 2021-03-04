@@ -7,7 +7,7 @@
        COMMON /sides/ a, b, c
        COMMON /angles/ alfa, beta, gamma, minA
        COMMON pi
-       pi = 4 * atan (1.0)
+       pi = 3.141592652
        DO WHILE (number .NE. 5 )
         CALL menu()
         CALL input(number)
