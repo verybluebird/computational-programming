@@ -13,7 +13,7 @@
         CALL input(number)
         SELECT CASE (number)
          CASE (1)
-   1      CALL input_triangle (a, b, gamma)
+   1      CALL input_triangle ()
           CALL calc_side()
           
           IF (a.LT.b+c .AND. b.LT.a+c .AND. c.LT.a+b) THEN
@@ -36,9 +36,12 @@
         END DO
       END
       
-      SUBROUTINE input_triangle(a, b, gamma)
+      SUBROUTINE input_triangle()
         IMPLICIT NONE
-        REAL a, b, gamma
+        REAL a, b, c
+        REAL alfa, beta, gamma, minA
+        COMMON /sides/ a, b, c
+        COMMON /angles/ alfa, beta, gamma, minA
         
         PRINT *, 'Enter 2 sides'
         PRINT *, 'a,b: '
