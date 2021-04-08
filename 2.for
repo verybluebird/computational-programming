@@ -51,109 +51,135 @@
        END IF
       END 
       
-      REAL FUNCTION f(x,y)
-       IMPLICIT none
-       REAL x,y
-       f = 1/(x+y)
+      
+      
+      REAL FUNCTION round (x)
+       IMPLICIT NONE
+       REAL x
+       CHARACTER*12 x4
+      
+       WRITE (x4, 6 ) x
+       READ (x4, *) round
+   6   FORMAT(E12.4) 
       END
+      
+      
+      
+      
        
       SUBROUTINE table()
       
+     
+       
+      
        IMPLICIT none
   10   FORMAT(/1x\)
-  1    FORMAT(15('-')\)
+  1    FORMAT(14('-')\)
   2    FORMAT('|     INF     '\)
   3    FORMAT('     y\x     '\)
   4    FORMAT(E12.4\, ' ')
   5    FORMAT('|', E12.4\, ' ')
        REAL minx, maxx, deltax, miny, maxy, deltay
-       REAL i, j,  i_next,  j_next, f
+       REAL i, j,  i_next,  j_next, round, i_tmp, j_tmp
        COMMON /var/ minx, maxx, deltax, miny, maxy, deltay
        
        OPEN(2, FILE = 'output.txt', STATUS = 'NEW')
        WRITE (2,3)!x/y
        i = minx
-       i_next = i
-       DO WHILE (i_next .LT. maxx)       
-        WRITE (2,5)i_next ! |x1 |x2 
-        i_next = i_next + deltax
-       END DO
+       i_tmp = i
+       
+       DO WHILE (i .LT. maxx)
+        i_next = i + deltax
+            IF (ABS(i_tmp - round(i_next)).GE. 1E-4) THEN       
+                WRITE (2,5)i_tmp ! |x1 |x2 
+                i_next = round (i_next)
+                i_tmp = i_next      
+            ENDIF
+            i = i_next
+        END DO
+       
        WRITE (2,5) maxx   ! |xmax   
        WRITE (2,10) ! \n
-      
-        
        
        i = minx
-       i_next = i
+       i_tmp = i
+       WRITE (2,1)! ----- 
        
-       DO WHILE (i_next .LT. maxx)
-        WRITE (2,1)! ----- under x
-        i_next = i_next + deltax
-       END DO
+       DO WHILE (i .LT. maxx)
+        i_next = i + deltax
+            IF (ABS(i_tmp - round(i_next)).GE. 1E-4) THEN       
+                 WRITE (2,1)! ----- under x
+                i_next = round (i_next)
+                i_tmp = i_next      
+            ENDIF
+            i = i_next
+        END DO
        
        WRITE (2,1) ! -------
        WRITE (2,10) ! \n
+       
        j = miny
-       j_next = j
-       DO WHILE (j_next .LT. maxy)        
-        WRITE(2,10)! \n
-        WRITE (2,4)j_next ! yj 
-        
-        i = minx
-        i_next = i
-            DO WHILE (i_next .LT. maxx)
-               IF (ABS(i_next + j_next) .LT. 1E-38)THEN 
-                    WRITE (2,2) !inf
-               ELSE  
-                    WRITE (2,5)f(i_next, j_next) !|f(xi,yj)
+       j_tmp = j
+       
+       DO WHILE (j .LT. maxy) 
+        j_next = j + deltay
+          IF (ABS(j_tmp - round(j_next)).GE. 1E-4) THEN            
+            WRITE(2,10)! \n
+            WRITE (2,4)j_tmp ! yj 
+            
+            i = minx
+            i_tmp = i
+            DO WHILE (i .LT. maxx)
+               i_next = i + deltax
+               IF (ABS(i_tmp - round(i_next)).GE. 1E-4) THEN       
+                    IF (ABS(i_tmp + j_tmp) .LT. 1E-38)THEN 
+                        WRITE (2,2) !|inf
+                    ELSE  
+                        
+                        WRITE (2,5)1/(i_tmp+ j_tmp) !|f(xi,yj)    
+                    END IF
                     
+                    i_next = round(i_next)
+                    i_tmp = i_next
                END IF
-               i_next = i_next + deltax
-            END DO
-        j_next = j_next + deltay 
+               i = i_next  
+            END DO 
         
-        IF (ABS(maxx + j_next) .LT.1E-38)THEN 
+                IF (ABS(maxx + j_tmp) .LT.1E-38)THEN 
                     WRITE (2,2) !inf
-        ELSE  
-                    
-                    WRITE (2,5)f(maxx, j_next) !|f(xmax,yj)
-        END IF
-        
-        WRITE(2,10)! \n
-        WRITE (2,1)! ----- under x
-        i = minx
-        i_next = i
-        
-        DO WHILE (i_next .LT. maxx)
-         WRITE (2,1)! ----- under x
-         i_next = i_next + deltax
+                ELSE  
+                    WRITE (2,5)1/(maxx+ j_tmp) !|f(xmax,yj)
+                END IF
+            j_next = round(j_next)
+            j_tmp = j_next
+          END IF
+         j = j_next
         END DO
-        WRITE(2,10)! \n
-        
-         
-       END DO
+            
        WRITE (2,10) ! \n
        WRITE (2,4)maxy ! ymax
         i = minx
-        i_next = i
-            DO WHILE (i_next .LT. maxx)
-                IF (ABS(i_next+ maxy) .LT.1E-38)THEN 
-                    WRITE (2,2) !inf
-                ELSE  
-                    WRITE (2,5)f(i_next, maxy) !|f(xi,ymaxj)
-                END IF
-              
-               i_next = i_next + deltax
-            END DO
-        j_next = j_next + deltay 
-        IF (ABS(maxx + maxy) .LT. 1E-38)THEN 
-                    WRITE (2,2) !inf
-        ELSE  
-                   
-                    WRITE (2,5)f(maxx, maxy) !|f(xmax,maxy)
-        END IF
+        i_tmp = i
+         DO WHILE (i .LT. maxx)
+            i_next = i + deltax
+                IF (ABS(i_tmp - round(i_next)).GE. 1E-4) THEN       
+                    IF (ABS(i_tmp + maxy) .LT.1E-38)THEN 
+                        WRITE (2,2) !inf
+                    ELSE
+                        WRITE (2,5)1/(i_tmp+ maxy) !|f(xi,ymaxj)
+                    ENDIF
+                    i_next = round(i_next)
+                    i_tmp = i_next      
+                ENDIF
+            i = i_next
+         END DO
         
-        WRITE(2,10)! \n
+       IF (ABS(maxx + maxy) .LT. 1E-38)THEN 
+                   WRITE (2,2) !inf
+        ELSE  
+                   WRITE (2,5)1/(maxx+ maxy) !|f(xmax,maxy)
+       END IF
+      
        
       END
        
