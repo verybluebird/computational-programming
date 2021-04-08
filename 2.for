@@ -41,15 +41,6 @@
        END IF
       END 
       
-      LOGICAL FUNCTION xy_check(x,y)
-       IMPLICIT none
-       REAL x,y
-       IF (ABS(x+y) .LT. 1D-5)THEN
-        xy_check = .FALSE.
-       ELSE 
-        xy_check = .TRUE.
-       END IF
-      END 
       
       
       
