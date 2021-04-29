@@ -1,35 +1,37 @@
       PROGRAM matr
         IMPLICIT NONE
         COMMON mem (1000000)
-        COMMON /sizes/ N, M, alSize
+        COMMON /sizes/ N, M, N_al
         COMMON /mem/ memorySize
-        INTEGER N, M, alSize, memorySize
-        REAL mem
+        INTEGER  N,M, N_al, memorySize, mem
+      
+        
         memorySize = 1000000
         
 
 
-        CALL openMatrixVector(mem)
+        CALL openMatrixVec(mem(1),mem(N+2),mem(2*N+3),mem(2*N+4+N_al))
 
         IF (N .NE. M) THEN
             PAUSE 'Error: incorrect sizes!'
             STOP
         END IF
 
-        CALL mult(mem(1),mem(N+2),mem(2*N+3),mem(2*N+4+alSize),
-     > mem(3*N+5+alSize))
+        CALL mult(mem(1),mem(N+2),mem(2*N+3),mem(2*N+4+N_al),
+     > mem(3*N+5+N_al))
         CALL output(mem)
        
        END
 
 
-      SUBROUTINE openMatrixVector(mem)
+      SUBROUTINE openMatrixVec(ia, di, al, vec)
        IMPLICIT NONE
-       COMMON /sizes/ N,M, alSize
+       
+       COMMON /sizes/ N,M, N_al
        COMMON /mem/ memorySize
-       INTEGER N, M, alSize, memorySize, I
-       REAL mem
-       DIMENSION mem(*)
+       DIMENSION ia(*), di(*), al(*), vec(*)
+       INTEGER ia, N,M, N_al, i, memorySize
+       REAL di, al, vec
 
        OPEN (10, FILE = 'al.txt', err=1)
        OPEN (20, FILE = 'di.txt', err=1)
@@ -42,14 +44,13 @@
 
        IF (N .lt. memorySize)THEN
             READ (50, *) M
-            READ (30, *, end = 5) (mem(i), i=1, N+1)!ia
-   5        alSize = mem(N+1) - 1
-            CALL checkData(alSize)
+            READ (30, *) (ia(i), i=1, N+1)!ia
+   5        N_al = ia(N+1) - 1
 
-            READ (20,*,end=6) (mem(i),i = N+2, 2*N+1) !DI
-   6        READ (10,*,end=7) (mem(i),i = 2*N+2, 2*N+1+alSize) !AL
+            READ (20,*,end=6) (di(i),i = 1, N) !DI
+   6        READ (10,*,end=7) (al(i),i = 1, N_al) !AL
 
-   7        READ (60,*,end=8) (mem(i),i = 2*N+2+alSize , 2*N+1+alSize+M) !VEC
+   7        READ (60,*,end=8) (vec(i),i = 1  , M) !VEC
        ELSE
             PAUSE 'Not enough memory'
             STOP
@@ -71,59 +72,64 @@
 
 
 
-      SUBROUTINE output(mem)
+      SUBROUTINE output(res)
         IMPLICIT NONE
-        COMMON /sizes/ N,M, alSize
-        DIMENSION mem(*)
-        INTEGER N, M, alSize, memorySize, i
-        REAL mem
-   10   FORMAT (F9.2\)
-
+        COMMON /sizes/ N,M, N_al
+        DIMENSION res(*)
+        INTEGER N,M, N_al, i
+        REAL res
+        
+   
         OPEN (1, file = 'result.txt', err=20)
-        WRITE(1,10) (mem(i),i=2*N+1+alSize+M+1,2*N+1+alSize+M+N)
+        WRITE(1,10) (res(i),i=1,N)
+        CLOSE(1)
         GOTO 30
         
    20   PAUSE 'Error opening file!'
         STOP
-
+                  
+   10   FORMAT(E10.4\, ' ')
+                                                                                                                                                                                                                                             
 
    30 END
 
-      SUBROUTINE mult(ia, di, al, B, C)
+      SUBROUTINE mult(ia, di, al, v, res)
         IMPLICIT NONE
-        COMMON /sizes/ N,M, alSize
-        INTEGER N, M, alSize, memorySize, I, IAA, IAB, K, ia, J
-        REAL C, U, Z, B, di, al
-        DIMENSION C(*), ia(*),di(*),al(*),B(*)
+        COMMON /sizes/ N,M, N_al
         
-        DO   I=1,N
-         C(I)=di(I)*B(I)
+        DIMENSION  ia(*), di(*), al(*), v(*), res(*)
+        INTEGER ia,  N,M, N_al, i, j, k, a, i_start
+        REAL di, al, v, res, h, s, d 
+        
+        DO   i=1,N
+         res(i)=di(i)*v(i)
+         s=di(i)
+         h=v(i)
+         a = res(i)
         END DO 
-        DO   I=1,N
-            IAA = ia (I) 
-            IAB = ia(I+1) - 1 
-            IF (IAB .LT. IAA) CONTINUE
-            U = C(I)
-                Z = B(I)
-                DO  K=IAA, IAB
-                    J=ia(K)
-                    U=U+al(K)*B(J)
-                    C(J) = C(J) + al(K)*Z
-                END DO
-                C(I) = U
-      
+        DO   i=1,N
+             a = ia(i+1)
+            i_start = i - ia (i+1)
+            DO j = ia(i), ia (i+1) - 1
+                k = i_start +j
+                res(k) = res(k) + al(j)*v(i)
+                d = res(k)
+                res(i) = res(i) + al(j)*v(k) 
+                a = res (i) 
+            END DO
         END DO
+        
+        CALL output(res)
 
       END
 
 
 
       SUBROUTINE checkData(X)
-        IMPLICIT NONE
-        COMMON /sizes/ N,M, alSize
+        
+        COMMON /sizes/ N,M, N_al
         COMMON /mem/ memorySize
-        INTEGER N, M, alSize, memorySize, X
-
+        
         IF ( M .LT. 1 .OR. M .NE. N) THEN
             PAUSE 'Not enough memory!'
             STOP
